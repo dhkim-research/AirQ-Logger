@@ -12,6 +12,8 @@ This turns an M5Stack PaperS3 into an ESP-NOW air-quality data logger for up to 
   - `Per Boot`: create one file per boot session (`/airq_boot_<id>.tsv`)
 - Queues cloud payloads and uploads to HTTPS endpoint when Wi-Fi/cloud mode is enabled.
 - Prioritizes ESP-NOW reliability for logging; Wi-Fi is paused outside Wi-Fi setup/upload flows to protect packet reception.
+- Supports menu icon customization from SD card: add your preferred PNG icon files in `/icon`.  
+  Example icon files are provided in the `icon` folder of this project.
 
 ## Device role
 
