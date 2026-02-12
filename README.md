@@ -47,7 +47,9 @@ Notes:
 ## Wi-Fi and cloud config (from SD `config.txt`)
 
 Cloud credentials should be hardcoded in `config.txt` in your microSD card:  
-If Wi-Fi credentials are provided, it will auto-connect at boot:
+If Wi-Fi credentials are provided, it will remember the password for that provided WiFi SSID but not auto connect at boot (reason below):
+Since ESP-NOW + Wi‑Fi share the same 2.4GHz radio/channel, so sensor reception can degrade while Wi‑Fi is active and the priority of this AirQ_M Logger is to ensure local sensor logging first:
+WiFi can be used to upload the .tsv file to your desired Cloud address:
 
 ```txt
 cloud_ingest_url = "https://your-host-address"
