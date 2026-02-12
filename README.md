@@ -1,34 +1,57 @@
-# AirQ_M Logger (M5Paper S3)
+# AirQ_M Logger (M5Stack PaperS3 v1.2)
 
-This turns an M5Stack PaperS3 into an ESP-NOW air-quality data logger for up to 10 M5Stack AirQ sensor nodes.
+AirQ_M Logger turns an M5Stack PaperS3 into an ESP-NOW air-quality logger for AirQ sensor nodes.  
+The main goal is reliable local logging to SD card. Cloud upload is supported, but local collection is the priority.
 
 ## What it does
 
-- Receives sensor packets over ESP-NOW (CO2, PM, temperature, humidity, VOC, NOx, battery, sequence).
-- Shows live sensor status in a touch UI (list view, detail view, analysis plot, Wi-Fi, settings, sleep/off).
-- Logs sensor data to microSD as TSV with timestamps and sensor identity.
+- Receives AirQ packets over ESP-NOW (CO2, PM, temperature, humidity, VOC, NOx, battery, sequence).
+- Shows live data on touch UI screens (menu, AirQ list/detail, analysis, Wi-Fi, settings, sleep/off).
+- Logs sensor data to microSD as TSV with timestamp and sensor identity.
 - Supports two log modes:
-  - `Single`: append to one continuous file (`/airq_data_log.tsv`)
-  - `Per Boot`: create one file per boot session (`/airq_boot_<id>.tsv`)
-- Queues cloud payloads and uploads to HTTPS endpoint when Wi-Fi/cloud mode is enabled.
-- Prioritizes ESP-NOW reliability for logging; Wi-Fi is paused outside Wi-Fi setup/upload flows to protect packet reception.
-- Supports menu icon customization from SD card: add your preferred PNG icon files in `/icon`.  
-  Example icon files are provided in the `icon` folder of this project.
+  - `Single`: append to `/airq_data_log.tsv`
+  - `Per Boot`: write `/airq_boot_<id>.tsv`
+- Queues cloud payloads and uploads to HTTPS when cloud config is present.
+- Supports custom menu icons from SD in `/icon` (PNG files).
 
 ## Device role
 
-Primary role is robust, long-running local data logging.  
-Cloud upload is possible but is secondary and it is intended not to interrupt ESP-NOW collection.
+This firmware is built for long-running, stable local logging first.  
+Cloud upload is secondary and should not break ESP-NOW capture.
 
-## Storage format
+## Time behavior (current)
 
-TSV header:
+- Time is based on manual/RTC/system clock path.
+- Wi-Fi NTP sync is disabled by default in current firmware.
+- If valid time is not available, UI shows `NO TIME SET`.
+- While time is not valid, logging is paused (no mixed `NO_TIME` rows in main log).
+- After time is set, new rows are logged with valid `time_iso` and `epoch_s`.
 
-`time_iso epoch_s elapsed_s wifi_sync label mac seq batt_pct pm1 pm25 pm4 pm10 tempC rh voc nox co2`
+## Logging format
 
-## Hardware
+Default TSV columns:
 
-- Target: M5Stack PaperS3 (touch panel GT911)
-- Communication: ESP-NOW (AirQ sensor -> PaperS3 logger)
-- Storage: microSD
-- Optional: Wi-Fi for NTP time and cloud upload
+`time_iso	epoch_s	uptime_seconds	wifi_sync	label	mac	seq	batt_pct	pm1	pm25	pm4	pm10	tempC	rh	voc	nox	co2`
+
+Notes:
+- New files are created with a header.
+- Analysis parser also supports headerless rows (for older files).
+
+## Analysis mode
+
+- Select sensors, day filter, and time window filter.
+- `Window` means time-of-day blocks:
+  - `All`, `08-12`, `12-16`, `16-20`, `20-24`
+- `Zoom` controls recent range (`10m`, `1h`, `1d`, `All`).
+
+## Wi-Fi and cloud config (from SD `config.txt`)
+
+Cloud credentials should be hardcoded in `config.txt` in your microSD card:  
+If Wi-Fi credentials are provided, it will auto-connect at boot:
+
+```txt
+cloud_ingest_url = "https://your-host-address"
+cloud_api_key = "your-secret-api-key"
+
+wifi_ssid = "YOUR_WIFI_NAME"
+wifi_pwd = "YOUR_WIFI_PASSWORD"
